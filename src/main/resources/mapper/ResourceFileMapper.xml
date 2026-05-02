@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.lx.mapper.ResourceFileMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="org.lx.entity.ResourceFile">
+        <id column="id" property="id" />
+        <result column="file_name" property="file_name" />
+        <result column="file_key" property="file_key" />
+        <result column="file_md5" property="file_md5" />
+        <result column="file_size" property="file_size" />
+        <result column="mime_type" property="mime_type" />
+        <result column="file_type" property="file_type" />
+        <result column="preview_key" property="preview_key" />
+        <result column="category_id" property="category_id" />
+        <result column="status" property="status" />
+        <result column="create_by" property="create_by" />
+        <result column="is_deleted" property="is_deleted" />
+        <result column="create_time" property="create_time" />
+        <result column="update_time" property="update_time" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, file_name, file_key, file_md5, file_size, mime_type, file_type, preview_key, category_id, status, create_by, is_deleted, create_time, update_time
+    </sql>
+
+</mapper>

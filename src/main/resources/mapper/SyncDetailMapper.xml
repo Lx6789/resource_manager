@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.lx.mapper.SyncDetailMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="org.lx.entity.SyncDetail">
+        <id column="id" property="id" />
+        <result column="task_id" property="task_id" />
+        <result column="file_id" property="file_id" />
+        <result column="store_id" property="store_id" />
+        <result column="sync_status" property="sync_status" />
+        <result column="store_file_key" property="store_file_key" />
+        <result column="create_time" property="create_time" />
+        <result column="sync_time" property="sync_time" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, task_id, file_id, store_id, sync_status, store_file_key, create_time, sync_time
+    </sql>
+
+</mapper>

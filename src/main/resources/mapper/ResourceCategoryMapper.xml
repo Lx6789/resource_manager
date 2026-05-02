@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.lx.mapper.ResourceCategoryMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="org.lx.entity.ResourceCategory">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="parent_id" property="parent_id" />
+        <result column="level" property="level" />
+        <result column="sort" property="sort" />
+        <result column="is_deleted" property="is_deleted" />
+        <result column="create_time" property="create_time" />
+        <result column="update_time" property="update_time" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, name, parent_id, level, sort, is_deleted, create_time, update_time
+    </sql>
+
+</mapper>

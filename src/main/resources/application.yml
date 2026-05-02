@@ -1,0 +1,92 @@
+# ==================== 服务端口 ====================
+server:
+  port: 8080
+
+# ==================== Spring 配置 ====================
+spring:
+  # 激活的开发环境
+  profiles:
+    active: dev
+
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/resource_manager?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+
+  # Redis 配置
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+  # JSON 日期格式
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
+# ==================== MyBatis-Plus 配置 ====================
+mybatis-plus:
+  # Mapper XML 文件路径
+  mapper-locations: classpath*:/mapper/**/*.xml
+  # 实体类别名（可选，写全路径类名时可不配）
+  type-aliases-package: org.lx.entity
+  configuration:
+    # 下划线转驼峰
+    map-underscore-to-camel-case: true
+    # SQL 日志（开发环境打开方便调试）
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      # 逻辑删除字段
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      # 主键策略（雪花算法）
+      id-type: ASSIGN_ID
+
+# ==================== MinIO 配置 ====================
+minio:
+  endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket-name: resource-files
+
+# ==================== JWT 配置 ====================
+jwt:
+  # 密钥（生产环境需更换为复杂随机字符串）
+  secret: YourSecretKeyForJWT_MustBeLongEnough_AtLeast256Bits
+  # Token 过期时间（单位：秒，这里设为 24 小时）
+  expiration: 86400
+  # Token 前缀
+  token-prefix: Bearer
+  # 请求头名称
+  header: Authorization
+
+# ==================== SpringDoc OpenAPI 配置 ====================
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  packages-to-scan: org.lx.controller
+
+# ==================== Flowable 工作流配置 ====================
+flowable:
+  # 初次启动设为 true，自动建表；稳定后改为 false
+  database-schema-update: true
+  async-executor-activate: true
+
+# ==================== 日志配置 ====================
+logging:
+  level:
+    root: info
+    org.lx: debug
