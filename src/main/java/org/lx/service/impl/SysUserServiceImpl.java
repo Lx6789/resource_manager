@@ -14,9 +14,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -71,7 +74,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         Map<String, Object> tokenMap = new HashMap<>();
         tokenMap.put("token", token);
         tokenMap.put("tokenHead", tokenHead);
-        return RespBean.success(200, "登陆成功", userDetails);
+        return RespBean.success(200, "登陆成功", tokenMap);
     }
 
     /**
@@ -89,11 +92,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (existByPhone != null) {
             return RespBean.error(400, "该手机号已绑定账号，一个员工只能有一个账号");
         }
+
         // 2. 检查用户名是否存在
         SysUser existByUsername = lambdaQuery().eq(SysUser::getUsername, username).one();
         if (existByUsername != null) {
             return RespBean.error(400, "用户名已被占用");
         }
+
         // 3. 创建用户
         SysUser sysUser = new SysUser();
         sysUser.setUsername(username)
@@ -102,6 +107,32 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .setPhone(phone)
                 .setStatus(1);
         save(sysUser);
+
         return RespBean.success(200, "注册成功");
+    }
+
+    @Override
+    public RespBean info() {
+        // 1. 从 SecurityContext 获取当前登录用户
+        UsernamePasswordAuthenticationToken authentication =
+                (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null) {
+            return RespBean.error(401, "未登录");
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        // 2. 前端只需要角色（权限），直接从 authorities 里取
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        // 3. 组装返回数据
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("username", userDetails.getUsername());
+        userInfo.put("roles", roles);
+
+        return RespBean.success(200, "获取用户信息成功", userInfo);
     }
 }

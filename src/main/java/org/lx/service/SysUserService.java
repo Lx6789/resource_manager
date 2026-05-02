@@ -30,4 +30,10 @@ public interface SysUserService extends IService<SysUser> {
      * @return
      */
     RespBean register(String username, String password, String realName, String phone);
+
+    /**
+     * 返回当前登录用户的角色、权限
+     * @return
+     */
+    RespBean info();
 }

@@ -6,10 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.lx.config.RespBean;
 import org.lx.service.SysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @Title: AuthController
@@ -55,5 +52,17 @@ public class AuthController {
                              @RequestParam("phone") String phone) {
         log.info("username: {}, password: {}, realName: {}, phone: {}", username, password, realName, phone);
         return sysUserService.register(username, password, realName, phone);
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "退出登录")
+    public RespBean logout() {
+        return RespBean.success(200, "退出成功");
+    }
+
+    @GetMapping("/info")
+    @Operation(summary = "返回当前登录用户的角色、权限")
+    public RespBean info() {
+        return sysUserService.info();
     }
 }
