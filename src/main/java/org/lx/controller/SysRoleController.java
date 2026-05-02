@@ -1,18 +1,23 @@
 package org.lx.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 /**
- * <p>
- * 角色表 前端控制器
- * </p>
- *
- * @author lx
- * @since 2026-05-02 13:06
- */
-@RestController
-@RequestMapping("/sys-role")
+* @Title: SysRoleController
+* @Author: MrLu2
+* @Package: org.lx.controller
+* @Date: 2026/5/2 13:22
+* @Description: 角色 CRUD、配置角色权限
+*/
+    
 public class SysRoleController {
+
+    /**
+     * 3. SysRoleController（角色管理）
+     * 接口	方法	路径	说明
+     * 查询角色列表	GET	/api/role/list	所有角色
+     * 新增角色	POST	/api/role	创建角色
+     * 修改角色	PUT	/api/role/{id}	修改角色信息
+     * 删除角色	DELETE	/api/role/{id}	逻辑删除
+     * 配置角色权限	POST	/api/role/{id}/menus	设置角色拥有的菜单权限
+     */
 
 }

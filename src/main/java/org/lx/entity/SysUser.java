@@ -6,8 +6,11 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -17,6 +20,7 @@ import lombok.Setter;
  * @author lx
  * @since 2026-05-02 13:06
  */
+@Accessors(chain = true)
 @Getter
 @Setter
 @TableName("t_sys_user")
@@ -64,7 +68,7 @@ public class SysUser implements Serializable {
      * 状态: 0禁用 1启用
      */
     @TableField("status")
-    private Byte status;
+    private int status;
 
     /**
      * 逻辑删除: 0未删除 1已删除

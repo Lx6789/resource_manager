@@ -1,5 +1,6 @@
 package org.lx.service;
 
+import org.lx.config.RespBean;
 import org.lx.entity.SysUser;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -13,4 +14,20 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface SysUserService extends IService<SysUser> {
 
+    /**
+     * 登录
+     * @param username
+     * @param password
+     * @return
+     */
+    RespBean login(String username, String password);
+
+    /**
+     * 用户注册
+     * @param username
+     * @param password
+     * @param realName
+     * @return
+     */
+    RespBean register(String username, String password, String realName, String phone);
 }
