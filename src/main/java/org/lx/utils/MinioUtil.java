@@ -29,6 +29,9 @@ public class MinioUtil {
 
     /**
      * 上传文件
+     * @param file
+     * @return
+     * @throws Exception
      */
     public String uploadFile(MultipartFile file) throws Exception {
         String bucketName = minioProperties.getBucketName();
@@ -59,6 +62,9 @@ public class MinioUtil {
 
     /**
      * 获取文件预览 URL（有效期 7 天）
+     * @param objectKey
+     * @return
+     * @throws Exception
      */
     public String getPreviewUrl(String objectKey) throws Exception {
         return minioClient.getPresignedObjectUrl(
@@ -72,6 +78,9 @@ public class MinioUtil {
 
     /**
      * 下载文件（返回文件流）
+     * @param objectKey
+     * @return
+     * @throws Exception
      */
     public InputStream downloadFile(String objectKey) throws Exception {
         return minioClient.getObject(
