@@ -1,7 +1,7 @@
 package org.lx.service.impl;
 
 import org.lx.config.RespBean;
-import org.lx.config.security.JwtTokenUtils;
+import org.lx.utils.JwtTokenUtils;
 import org.lx.entity.SysUser;
 import org.lx.mapper.SysUserMapper;
 import org.lx.service.SysUserService;

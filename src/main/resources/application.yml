@@ -7,6 +7,10 @@ spring:
   # 激活的开发环境
   profiles:
     active: dev
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
 
   # 数据源配置
   datasource:

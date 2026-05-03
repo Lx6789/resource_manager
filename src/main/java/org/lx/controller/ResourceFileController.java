@@ -1,5 +1,16 @@
 package org.lx.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
+import org.lx.config.RespBean;
+import org.lx.service.ResourceFileService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import javax.servlet.http.HttpServletResponse;
+
 /**
 * @Title: ResourceFileController
 * @Author: MrLu2
@@ -7,7 +18,11 @@ package org.lx.controller;
 * @Date: 2026/5/2 13:23
 * @Description: 文件上传/下载/预览、秒传、标签管理
 */
-    
+
+@Slf4j
+@RestController
+@RequestMapping("/api/resource")
+@Tag(name = "文件管理")
 public class ResourceFileController {
 
     /**
@@ -25,5 +40,36 @@ public class ResourceFileController {
      * 查询转码进度	GET	/api/resource/{id}/task	查看异步任务状态
      *
      */
+
+    @Autowired
+    private ResourceFileService resourceFileService;
+
+    @PostMapping(value = "/upload", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "上传文件")
+    public RespBean upload(@Parameter(description = "文件", required = true)
+                           @RequestParam("file") MultipartFile file) {
+        return resourceFileService.upload(file);
+    }
+
+    @GetMapping("/preview/{id}")
+    @Operation(summary = "获取预览URL")
+    public RespBean preview(@PathVariable Long id) {
+        return resourceFileService.preview(id);
+    }
+
+    @GetMapping("/download/{id}")
+    @Operation(summary = "下载文件")
+    public void download(@PathVariable Long id, HttpServletResponse response) {
+        resourceFileService.download(id, response);
+    }
+
+    @GetMapping("/list")
+    @Operation(summary = "资源列表")
+    public RespBean list(@RequestParam(defaultValue = "1") Integer page,
+                         @RequestParam(defaultValue = "10") Integer size,
+                         @RequestParam(required = false) Long categoryId,
+                         @RequestParam(required = false) Integer fileType) {
+        return resourceFileService.list(page, size, categoryId, fileType);
+    }
 
 }

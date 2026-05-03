@@ -1,4 +1,4 @@
-package org.lx.config.security;
+package org.lx.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.*;

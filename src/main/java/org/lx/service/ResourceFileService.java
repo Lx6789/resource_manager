@@ -1,7 +1,11 @@
 package org.lx.service;
 
+import org.lx.config.RespBean;
 import org.lx.entity.ResourceFile;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -13,4 +17,34 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ResourceFileService extends IService<ResourceFile> {
 
+    /**
+     * 上传文件
+     * @param file
+     * @return
+     */
+    RespBean upload(MultipartFile file);
+
+    /**
+     * 获取预览URL
+     * @param id
+     * @return
+     */
+    RespBean preview(Long id);
+
+    /**
+     * 下载文件
+     * @param id
+     * @param response
+     */
+    void download(Long id, HttpServletResponse response);
+
+    /**
+     * 资源列表
+     * @param page
+     * @param size
+     * @param categoryId
+     * @param fileType
+     * @return
+     */
+    RespBean list(Integer page, Integer size, Long categoryId, Integer fileType);
 }

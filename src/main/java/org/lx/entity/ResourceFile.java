@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -20,6 +21,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @TableName("t_resource_file")
+@Accessors(chain = true)
 public class ResourceFile implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -34,68 +36,68 @@ public class ResourceFile implements Serializable {
      * 原始文件名
      */
     @TableField("file_name")
-    private String file_name;
+    private String fileName;
 
     /**
      * MinIO中的存储路径/key
      */
     @TableField("file_key")
-    private String file_key;
+    private String fileKey;
 
     /**
      * 文件MD5值(秒传核心)
      */
     @TableField("file_md5")
-    private String file_md5;
+    private String fileMd5;
 
     /**
      * 文件大小(字节)
      */
     @TableField("file_size")
-    private Long file_size;
+    private Long fileSize;
 
     /**
      * MIME类型,如image/png
      */
     @TableField("mime_type")
-    private String mime_type;
+    private String mimeType;
 
     /**
      * 文件类型: 1图片 2视频 3音频 4文档 5其他
      */
     @TableField("file_type")
-    private Byte file_type;
+    private int fileType;
 
     /**
      * 预览文件key(视频缩略图/低清版)
      */
     @TableField("preview_key")
-    private String preview_key;
+    private String previewKey;
 
     /**
      * 所属分类ID
      */
     @TableField("category_id")
-    private Long category_id;
+    private Long categoryId;
 
     /**
      * 状态: 0删除 1正常 2转码中
      */
     @TableField("status")
-    private Byte status;
+    private int status;
 
     /**
      * 上传者ID
      */
     @TableField("create_by")
-    private Long create_by;
+    private Long createBy;
 
     @TableField("is_deleted")
-    private Byte is_deleted;
+    private Byte isDeleted;
 
     @TableField("create_time")
-    private LocalDateTime create_time;
+    private LocalDateTime createTime;
 
     @TableField("update_time")
-    private LocalDateTime update_time;
+    private LocalDateTime updateTime;
 }
