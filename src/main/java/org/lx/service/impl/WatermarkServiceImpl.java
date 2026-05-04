@@ -46,7 +46,7 @@ public class WatermarkServiceImpl implements WatermarkService {
      * @param fileId
      * @param inputKey
      */
-    @Async("taskExecutor")
+    @Async("taskExecutor") //异步
     @Override
     public void processWatermark(Long fileId, String inputKey) {
         // 1. 创建任务记录
