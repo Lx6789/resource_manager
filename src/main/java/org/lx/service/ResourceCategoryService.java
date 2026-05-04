@@ -3,6 +3,8 @@ package org.lx.service;
 import org.lx.entity.ResourceCategory;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * <p>
  * 资源分类表 服务类
@@ -13,4 +15,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ResourceCategoryService extends IService<ResourceCategory> {
 
+    /**
+     * 查询分类树
+     * @return
+     */
+    List<ResourceCategory> getCategoryTree();
 }

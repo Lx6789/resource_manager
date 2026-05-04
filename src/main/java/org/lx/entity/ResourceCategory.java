@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,7 +42,7 @@ public class ResourceCategory implements Serializable {
      * 父分类ID, 0为根分类
      */
     @TableField("parent_id")
-    private Long parent_id;
+    private Long parentId;
 
     /**
      * 层级
@@ -55,11 +57,14 @@ public class ResourceCategory implements Serializable {
     private Integer sort;
 
     @TableField("is_deleted")
-    private Byte is_deleted;
+    private Byte isDeleted;
 
     @TableField("create_time")
-    private LocalDateTime create_time;
+    private LocalDateTime createTime;
 
     @TableField("update_time")
-    private LocalDateTime update_time;
+    private LocalDateTime updateTime;
+
+    @TableField(exist = false)  // 数据库里没有这个字段
+    private List<ResourceCategory> children;
 }

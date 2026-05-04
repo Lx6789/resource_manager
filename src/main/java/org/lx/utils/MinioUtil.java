@@ -89,4 +89,14 @@ public class MinioUtil {
                         .object(objectKey)
                         .build());
     }
+
+    /**
+     * 计算文件的 MD5 值
+     * @param file
+     * @return
+     * @throws Exception
+     */
+    public String calculateMd5(MultipartFile file) throws Exception {
+        return cn.hutool.crypto.digest.DigestUtil.md5Hex(file.getInputStream());
+    }
 }

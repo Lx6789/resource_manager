@@ -42,10 +42,21 @@ public class ResourceFileServiceImpl extends ServiceImpl<ResourceFileMapper, Res
     @Override
     public RespBean upload(MultipartFile file) {
         try {
-            log.info("开始上传文件...");
-            String fileKey = minioUtil.uploadFile(file);
-            String md5 = cn.hutool.crypto.digest.DigestUtil.md5Hex(file.getInputStream());
+            // 1. 计算 MD5
+            String md5 = minioUtil.calculateMd5(file);
 
+            // 2. 秒传：检查 MD5 是否已存在
+            ResourceFile existFile = lambdaQuery().eq(ResourceFile::getFileMd5, md5).one();
+            if (existFile != null) {
+                log.info("秒传成功，复用已有文件：{}", existFile.getFileKey());
+                // 返回已有文件的元信息
+                return RespBean.success(200, "秒传成功", existFile);
+            }
+
+            // 3. MD5 不存在，上传到 MinIO
+            String fileKey = minioUtil.uploadFile(file);
+
+            // 4. 保存到数据库
             ResourceFile resourceFile = new ResourceFile()
                     .setFileName(file.getOriginalFilename())
                     .setFileKey(fileKey)
@@ -54,13 +65,12 @@ public class ResourceFileServiceImpl extends ServiceImpl<ResourceFileMapper, Res
                     .setMimeType(file.getContentType())
                     .setFileType(1)
                     .setStatus(1);
-
             save(resourceFile);
-            log.info("文件上传成功...");
+
             return RespBean.success(200, "上传成功", resourceFile);
 
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("上传失败：{}", e.getMessage());
             return RespBean.error(500, "上传失败：" + e.getMessage());
         }
     }
