@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.lx.config.RespBean;
 import org.lx.entity.ResourceFile;
+import org.lx.entity.ResourceFileTag;
 import org.lx.mapper.ResourceFileMapper;
+import org.lx.mapper.ResourceFileTagMapper;
 import org.lx.service.ResourceFileService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.lx.utils.MinioUtil;
@@ -17,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.InputStream;
 import java.net.URLEncoder;
+import java.util.List;
 
 /**
  * <p>
@@ -33,6 +36,9 @@ public class ResourceFileServiceImpl extends ServiceImpl<ResourceFileMapper, Res
 
     @Autowired
     private MinioUtil minioUtil;
+
+    @Autowired
+    private ResourceFileTagMapper resourceFileTagMapper;
 
     /**
      * 上传文件
@@ -129,28 +135,58 @@ public class ResourceFileServiceImpl extends ServiceImpl<ResourceFileMapper, Res
      * @param size
      * @param categoryId
      * @param fileType
+     * @param keyword
      * @return
      */
     @Override
-    public RespBean list(Integer page, Integer size, Long categoryId, Integer fileType) {
-        try {
-            log.info("开始获取资源列表...");
-            LambdaQueryWrapper<ResourceFile> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(ResourceFile::getStatus, 1);
-            if (categoryId != null) {
-                wrapper.eq(ResourceFile::getCategoryId, categoryId);
-            }
-            if (fileType != null) {
-                wrapper.eq(ResourceFile::getFileType, fileType);
-            }
-            wrapper.orderByDesc(ResourceFile::getCreateTime);
+    public RespBean list(Integer page, Integer size, Long categoryId, Integer fileType, String keyword) {
+        LambdaQueryWrapper<ResourceFile> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ResourceFile::getStatus, 1);
 
-            IPage<ResourceFile> result = page(new Page<>(page, size), wrapper);
-            log.info("获取资源列表成功...");
-            return RespBean.success(200, "查询成功", result);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return RespBean.error(500, "获取资源列表失败" + e.getMessage());
+        // 按分类筛选
+        if (categoryId != null) {
+            wrapper.eq(ResourceFile::getCategoryId, categoryId);
         }
+
+        // 按文件类型筛选
+        if (fileType != null) {
+            wrapper.eq(ResourceFile::getFileType, fileType);
+        }
+
+        // 关键词搜索：匹配文件名
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            wrapper.like(ResourceFile::getFileName, keyword);
+        }
+
+        wrapper.orderByDesc(ResourceFile::getCreateTime);
+
+        IPage<ResourceFile> result = this.baseMapper.selectPage(new Page<>(page, size), wrapper);
+        return RespBean.success(200, "查询成功", result);
     }
+
+    @Override
+    public RespBean setTags(Long fileId, List<Long> tagIds) {
+        log.info("开始打标签...");
+        ResourceFile file = getById(fileId);
+        if (file == null || file.getStatus() == 0) {
+            return RespBean.error(404, "文件不存在");
+        }
+
+        // 先删掉旧标签
+        resourceFileTagMapper.delete(
+                new LambdaQueryWrapper<ResourceFileTag>().eq(ResourceFileTag::getFileId, fileId));
+
+        // 再插入新标签
+        for (Long tagId : tagIds) {
+            ResourceFileTag fileTag = new ResourceFileTag()
+                    .setFileId(fileId)
+                    .setTagId(tagId);
+            resourceFileTagMapper.insert(fileTag);
+        }
+
+        log.info("打标签结束...");
+        return RespBean.success(200, "标签设置成功", null);
+    }
+
+
 }

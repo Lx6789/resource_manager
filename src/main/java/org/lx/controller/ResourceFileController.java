@@ -5,11 +5,13 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.lx.config.RespBean;
+import org.lx.entity.ResourceFile;
 import org.lx.service.ResourceFileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 /**
 * @Title: ResourceFileController
@@ -68,8 +70,38 @@ public class ResourceFileController {
     public RespBean list(@RequestParam(defaultValue = "1") Integer page,
                          @RequestParam(defaultValue = "10") Integer size,
                          @RequestParam(required = false) Long categoryId,
-                         @RequestParam(required = false) Integer fileType) {
-        return resourceFileService.list(page, size, categoryId, fileType);
+                         @RequestParam(required = false) Integer fileType,
+                         @RequestParam(required = false) String keyword) {
+        return resourceFileService.list(page, size, categoryId, fileType, keyword);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "资源详情")
+    public RespBean getById(@PathVariable Long id) {
+        ResourceFile file = resourceFileService.getById(id);
+        if (file == null || file.getStatus() == 0) {
+            return RespBean.error(404, "文件不存在");
+        }
+        return RespBean.success(200, "查询成功", file);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "删除资源")
+    public RespBean delete(@PathVariable Long id) {
+        ResourceFile file = resourceFileService.getById(id);
+        if (file == null) {
+            return RespBean.error(404, "文件不存在");
+        }
+        // 逻辑删除：只改状态，不删文件
+        file.setStatus(0);
+        resourceFileService.updateById(file);
+        return RespBean.success(200, "删除成功", null);
+    }
+
+    @PostMapping("/{id}/tags")
+    @Operation(summary = "给资源打标签")
+    public RespBean setTags(@PathVariable Long id, @RequestBody List<Long> tagIds) {
+        return resourceFileService.setTags(id, tagIds);
     }
 
 }

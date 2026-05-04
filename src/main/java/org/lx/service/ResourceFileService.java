@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 /**
  * <p>
@@ -44,7 +45,16 @@ public interface ResourceFileService extends IService<ResourceFile> {
      * @param size
      * @param categoryId
      * @param fileType
+     * @param keyword
      * @return
      */
-    RespBean list(Integer page, Integer size, Long categoryId, Integer fileType);
+    RespBean list(Integer page, Integer size, Long categoryId, Integer fileType, String keyword);
+
+    /**
+     * 给资源打标签
+     * @param fileId
+     * @param tagIds
+     * @return
+     */
+    RespBean setTags(Long fileId, List<Long> tagIds);
 }
