@@ -12,6 +12,7 @@ import org.lx.mapper.ResourceFileTagMapper;
 import org.lx.service.ResourceFileService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.lx.service.ResourceTagService;
+import org.lx.service.WatermarkService;
 import org.lx.utils.MinioUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,9 @@ public class ResourceFileServiceImpl extends ServiceImpl<ResourceFileMapper, Res
     @Autowired
     private ResourceTagService resourceTagService;
 
+    @Autowired
+    private WatermarkService watermarkService;
+
     @Override
     public RespBean upload(MultipartFile file) {
         String md5 = minioUtil.calculateMd5(file);
@@ -68,6 +72,9 @@ public class ResourceFileServiceImpl extends ServiceImpl<ResourceFileMapper, Res
                 .setFileType(1)
                 .setStatus(1);
         save(resourceFile);
+
+        // 触发异步水印处理
+        watermarkService.processWatermark(resourceFile.getId(), resourceFile.getFileKey());
 
         return RespBean.success(200, "上传成功", resourceFile);
     }
