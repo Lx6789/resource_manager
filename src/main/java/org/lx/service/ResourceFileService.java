@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -37,7 +38,7 @@ public interface ResourceFileService extends IService<ResourceFile> {
      * @param id
      * @param response
      */
-    void download(Long id, HttpServletResponse response);
+    void download(Long id, HttpServletResponse response) throws IOException;
 
     /**
      * 资源列表

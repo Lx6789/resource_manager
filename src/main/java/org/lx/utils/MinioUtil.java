@@ -29,74 +29,74 @@ public class MinioUtil {
 
     /**
      * 上传文件
-     * @param file
-     * @return
-     * @throws Exception
      */
-    public String uploadFile(MultipartFile file) throws Exception {
-        String bucketName = minioProperties.getBucketName();
+    public String uploadFile(MultipartFile file) {
+        try {
+            String bucketName = minioProperties.getBucketName();
+            boolean bucketExists = minioClient.bucketExists(
+                    BucketExistsArgs.builder().bucket(bucketName).build());
+            if (!bucketExists) {
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+            }
 
-        // 如果桶不存在就创建
-        boolean bucketExists = minioClient.bucketExists(
-                BucketExistsArgs.builder().bucket(bucketName).build());
-        if (!bucketExists) {
-            minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+            String originalName = file.getOriginalFilename();
+            String suffix = originalName.substring(originalName.lastIndexOf("."));
+            String objectKey = IdUtil.simpleUUID() + suffix;
+
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectKey)
+                            .stream(file.getInputStream(), file.getSize(), -1)
+                            .contentType(file.getContentType())
+                            .build());
+
+            return objectKey;
+        } catch (Exception e) {
+            throw new RuntimeException("文件上传失败：" + e.getMessage(), e);
         }
-
-        // 生成唯一文件名，防止覆盖
-        String originalName = file.getOriginalFilename();
-        String suffix = originalName.substring(originalName.lastIndexOf("."));
-        String objectKey = IdUtil.simpleUUID() + suffix;
-
-        // 上传
-        minioClient.putObject(
-                PutObjectArgs.builder()
-                        .bucket(bucketName)
-                        .object(objectKey)
-                        .stream(file.getInputStream(), file.getSize(), -1)
-                        .contentType(file.getContentType())
-                        .build());
-
-        return objectKey;
     }
 
     /**
      * 获取文件预览 URL（有效期 7 天）
-     * @param objectKey
-     * @return
-     * @throws Exception
      */
-    public String getPreviewUrl(String objectKey) throws Exception {
-        return minioClient.getPresignedObjectUrl(
-                GetPresignedObjectUrlArgs.builder()
-                        .method(Method.GET)
-                        .bucket(minioProperties.getBucketName())
-                        .object(objectKey)
-                        .expiry(7, TimeUnit.DAYS)
-                        .build());
+    public String getPreviewUrl(String objectKey) {
+        try {
+            return minioClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .method(Method.GET)
+                            .bucket(minioProperties.getBucketName())
+                            .object(objectKey)
+                            .expiry(7, TimeUnit.DAYS)
+                            .build());
+        } catch (Exception e) {
+            throw new RuntimeException("获取预览链接失败：" + e.getMessage(), e);
+        }
     }
 
     /**
      * 下载文件（返回文件流）
-     * @param objectKey
-     * @return
-     * @throws Exception
      */
-    public InputStream downloadFile(String objectKey) throws Exception {
-        return minioClient.getObject(
-                GetObjectArgs.builder()
-                        .bucket(minioProperties.getBucketName())
-                        .object(objectKey)
-                        .build());
+    public InputStream downloadFile(String objectKey) {
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(minioProperties.getBucketName())
+                            .object(objectKey)
+                            .build());
+        } catch (Exception e) {
+            throw new RuntimeException("文件下载失败：" + e.getMessage(), e);
+        }
     }
 
     /**
      * 计算文件的 MD5 值
-     * @param file
-     * @return
-     * @throws Exception
      */
-    public String calculateMd5(MultipartFile file) throws Exception {
-        return cn.hutool.crypto.digest.DigestUtil.md5Hex(file.getInputStream());
+    public String calculateMd5(MultipartFile file) {
+        try {
+            return cn.hutool.crypto.digest.DigestUtil.md5Hex(file.getInputStream());
+        } catch (Exception e) {
+            throw new RuntimeException("计算MD5失败：" + e.getMessage(), e);
+        }
     }
 }

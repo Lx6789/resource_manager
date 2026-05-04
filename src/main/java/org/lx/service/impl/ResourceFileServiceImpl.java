@@ -11,15 +11,19 @@ import org.lx.mapper.ResourceFileMapper;
 import org.lx.mapper.ResourceFileTagMapper;
 import org.lx.service.ResourceFileService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.lx.service.ResourceTagService;
 import org.lx.utils.MinioUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.lx.entity.ResourceTag;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -40,153 +44,128 @@ public class ResourceFileServiceImpl extends ServiceImpl<ResourceFileMapper, Res
     @Autowired
     private ResourceFileTagMapper resourceFileTagMapper;
 
-    /**
-     * 上传文件
-     * @param file
-     * @return
-     */
+    @Autowired
+    private ResourceTagService resourceTagService;
+
     @Override
     public RespBean upload(MultipartFile file) {
-        try {
-            // 1. 计算 MD5
-            String md5 = minioUtil.calculateMd5(file);
+        String md5 = minioUtil.calculateMd5(file);
 
-            // 2. 秒传：检查 MD5 是否已存在
-            ResourceFile existFile = lambdaQuery().eq(ResourceFile::getFileMd5, md5).one();
-            if (existFile != null) {
-                log.info("秒传成功，复用已有文件：{}", existFile.getFileKey());
-                // 返回已有文件的元信息
-                return RespBean.success(200, "秒传成功", existFile);
-            }
-
-            // 3. MD5 不存在，上传到 MinIO
-            String fileKey = minioUtil.uploadFile(file);
-
-            // 4. 保存到数据库
-            ResourceFile resourceFile = new ResourceFile()
-                    .setFileName(file.getOriginalFilename())
-                    .setFileKey(fileKey)
-                    .setFileMd5(md5)
-                    .setFileSize(file.getSize())
-                    .setMimeType(file.getContentType())
-                    .setFileType(1)
-                    .setStatus(1);
-            save(resourceFile);
-
-            return RespBean.success(200, "上传成功", resourceFile);
-
-        } catch (Exception e) {
-            log.error("上传失败：{}", e.getMessage());
-            return RespBean.error(500, "上传失败：" + e.getMessage());
+        ResourceFile existFile = lambdaQuery().eq(ResourceFile::getFileMd5, md5).one();
+        if (existFile != null) {
+            log.info("秒传成功，复用已有文件：{}", existFile.getFileKey());
+            return RespBean.success(200, "秒传成功", existFile);
         }
+
+        String fileKey = minioUtil.uploadFile(file);
+
+        ResourceFile resourceFile = new ResourceFile()
+                .setFileName(file.getOriginalFilename())
+                .setFileKey(fileKey)
+                .setFileMd5(md5)
+                .setFileSize(file.getSize())
+                .setMimeType(file.getContentType())
+                .setFileType(1)
+                .setStatus(1);
+        save(resourceFile);
+
+        return RespBean.success(200, "上传成功", resourceFile);
     }
 
-    /**
-     * 获取预览URL
-     * @param id
-     * @return
-     */
     @Override
     public RespBean preview(Long id) {
-        try {
-            log.info("开始获取url...");
-            ResourceFile file = getById(id);
-            if (file == null) {
-                return RespBean.error(404, "文件不存在");
-            }
-            String url = minioUtil.getPreviewUrl(file.getFileKey());
-            log.info("获取url成功...");
-            return RespBean.success(200, "预览链接", url);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return RespBean.error(500, "获取预览链接失败：" + e.getMessage());
+        ResourceFile file = lambdaQuery()
+                .eq(ResourceFile::getId, id)
+                .eq(ResourceFile::getStatus, 1)
+                .one();
+        if (file == null) {
+            return RespBean.error(404, "文件不存在或已被删除");
         }
+        String url = minioUtil.getPreviewUrl(file.getFileKey());
+        return RespBean.success(200, "预览链接", url);
     }
 
-    /**
-     * 下载文件
-     * @param id
-     * @param response
-     */
     @Override
-    public void download(Long id, HttpServletResponse response) {
-        try {
-            log.info("开始下载文件...");
-            ResourceFile file = getById(id);
-            if (file == null) {
-                response.setStatus(404);
-                return;
-            }
-            InputStream inputStream = minioUtil.downloadFile(file.getFileKey());
-            response.setContentType(file.getMimeType());
-            response.setHeader("Content-Disposition",
-                    "attachment; filename=" + URLEncoder.encode(file.getFileName(), "UTF-8"));
-            org.apache.tomcat.util.http.fileupload.IOUtils.copy(inputStream, response.getOutputStream());
-            log.info("下载文件成功...");
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            response.setStatus(500);
+    public void download(Long id, HttpServletResponse response) throws IOException {
+        ResourceFile file = lambdaQuery()
+                .eq(ResourceFile::getId, id)
+                .eq(ResourceFile::getStatus, 1)
+                .one();
+        if (file == null) {
+            response.setStatus(404);
+            return;
         }
+        InputStream inputStream = minioUtil.downloadFile(file.getFileKey());
+        response.setContentType(file.getMimeType());
+        response.setHeader("Content-Disposition",
+                "attachment; filename=" + URLEncoder.encode(file.getFileName(), "UTF-8"));
+        org.apache.tomcat.util.http.fileupload.IOUtils.copy(inputStream, response.getOutputStream());
     }
 
-    /**
-     * 资源列表
-     * @param page
-     * @param size
-     * @param categoryId
-     * @param fileType
-     * @param keyword
-     * @return
-     */
     @Override
     public RespBean list(Integer page, Integer size, Long categoryId, Integer fileType, String keyword) {
         LambdaQueryWrapper<ResourceFile> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ResourceFile::getStatus, 1);
 
-        // 按分类筛选
         if (categoryId != null) {
             wrapper.eq(ResourceFile::getCategoryId, categoryId);
         }
-
-        // 按文件类型筛选
         if (fileType != null) {
             wrapper.eq(ResourceFile::getFileType, fileType);
         }
 
-        // 关键词搜索：匹配文件名
         if (keyword != null && !keyword.trim().isEmpty()) {
-            wrapper.like(ResourceFile::getFileName, keyword);
+            // 先按标签搜索
+            List<Long> tagIds = resourceTagService.lambdaQuery()
+                    .like(ResourceTag::getTagName, keyword)
+                    .list()
+                    .stream()
+                    .map(ResourceTag::getId)
+                    .collect(Collectors.toList());
+
+            if (!tagIds.isEmpty()) {
+                List<Long> fileIds = resourceFileTagMapper.selectList(
+                        new LambdaQueryWrapper<ResourceFileTag>()
+                                .in(ResourceFileTag::getTagId, tagIds)
+                ).stream().map(ResourceFileTag::getFileId).distinct().collect(Collectors.toList());
+
+                if (!fileIds.isEmpty()) {
+                    wrapper.in(ResourceFile::getId, fileIds);
+                } else {
+                    wrapper.eq(ResourceFile::getId, -1L);
+                }
+            } else {
+                wrapper.like(ResourceFile::getFileName, keyword);
+            }
         }
 
         wrapper.orderByDesc(ResourceFile::getCreateTime);
-
         IPage<ResourceFile> result = this.baseMapper.selectPage(new Page<>(page, size), wrapper);
         return RespBean.success(200, "查询成功", result);
     }
 
     @Override
     public RespBean setTags(Long fileId, List<Long> tagIds) {
-        log.info("开始打标签...");
-        ResourceFile file = getById(fileId);
-        if (file == null || file.getStatus() == 0) {
-            return RespBean.error(404, "文件不存在");
+        ResourceFile file = lambdaQuery()
+                .eq(ResourceFile::getId, fileId)
+                .eq(ResourceFile::getStatus, 1)
+                .one();
+        if (file == null) {
+            return RespBean.error(404, "文件不存在或已被删除");
         }
 
-        // 先删掉旧标签
         resourceFileTagMapper.delete(
                 new LambdaQueryWrapper<ResourceFileTag>().eq(ResourceFileTag::getFileId, fileId));
 
-        // 再插入新标签
-        for (Long tagId : tagIds) {
-            ResourceFileTag fileTag = new ResourceFileTag()
-                    .setFileId(fileId)
-                    .setTagId(tagId);
-            resourceFileTagMapper.insert(fileTag);
+        if (tagIds != null && !tagIds.isEmpty()) {
+            for (Long tagId : tagIds) {
+                ResourceFileTag fileTag = new ResourceFileTag()
+                        .setFileId(fileId)
+                        .setTagId(tagId);
+                resourceFileTagMapper.insert(fileTag);
+            }
         }
 
-        log.info("打标签结束...");
         return RespBean.success(200, "标签设置成功", null);
     }
-
-
 }

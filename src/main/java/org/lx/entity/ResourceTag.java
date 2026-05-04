@@ -34,8 +34,8 @@ public class ResourceTag implements Serializable {
      * 标签名称
      */
     @TableField("tag_name")
-    private String tag_name;
+    private String tagName;
 
     @TableField("create_time")
-    private LocalDateTime create_time;
+    private LocalDateTime createTime;
 }

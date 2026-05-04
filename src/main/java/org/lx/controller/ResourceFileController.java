@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -61,7 +62,7 @@ public class ResourceFileController {
 
     @GetMapping("/download/{id}")
     @Operation(summary = "下载文件")
-    public void download(@PathVariable Long id, HttpServletResponse response) {
+    public void download(@PathVariable Long id, HttpServletResponse response) throws IOException {
         resourceFileService.download(id, response);
     }
 
