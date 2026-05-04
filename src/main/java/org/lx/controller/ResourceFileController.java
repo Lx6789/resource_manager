@@ -78,7 +78,10 @@ public class ResourceFileController {
     @GetMapping("/{id}")
     @Operation(summary = "资源详情")
     public RespBean getById(@PathVariable Long id) {
-        ResourceFile file = resourceFileService.getById(id);
+        ResourceFile file = resourceFileService.lambdaQuery()
+                .eq(ResourceFile::getId, id)
+                .eq(ResourceFile::getStatus, 1)
+                .one();
         if (file == null || file.getStatus() == 0) {
             return RespBean.error(404, "文件不存在");
         }
