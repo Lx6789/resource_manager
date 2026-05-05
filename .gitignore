@@ -36,3 +36,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### 上传临时文件 ##
+temp_*.tmp
+temp_*.mp4
+temp_*.jpg

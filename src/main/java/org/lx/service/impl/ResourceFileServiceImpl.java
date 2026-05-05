@@ -12,6 +12,7 @@ import org.lx.mapper.ResourceFileTagMapper;
 import org.lx.service.ResourceFileService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.lx.service.ResourceTagService;
+import org.lx.service.TranscodeService;
 import org.lx.service.WatermarkService;
 import org.lx.utils.MinioUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,9 @@ public class ResourceFileServiceImpl extends ServiceImpl<ResourceFileMapper, Res
     @Autowired
     private WatermarkService watermarkService;
 
+    @Autowired
+    private TranscodeService transcodeService;
+
     @Override
     public RespBean upload(MultipartFile file) {
         String md5 = minioUtil.calculateMd5(file);
@@ -63,18 +67,29 @@ public class ResourceFileServiceImpl extends ServiceImpl<ResourceFileMapper, Res
 
         String fileKey = minioUtil.uploadFile(file);
 
+        // 判断文件类型，自动识别图片还是视频
+        String contentType = file.getContentType();
+        int fileType = 1;  // 默认图片
+        if (contentType != null && contentType.startsWith("video/")) {
+            fileType = 2;
+        }
+
         ResourceFile resourceFile = new ResourceFile()
                 .setFileName(file.getOriginalFilename())
                 .setFileKey(fileKey)
                 .setFileMd5(md5)
                 .setFileSize(file.getSize())
-                .setMimeType(file.getContentType())
-                .setFileType(1)
+                .setMimeType(contentType)
+                .setFileType(fileType)   // ← 动态设置
                 .setStatus(1);
         save(resourceFile);
 
-        // 触发异步水印处理
-        watermarkService.processWatermark(resourceFile.getId(), resourceFile.getFileKey());
+        // 按文件类型触发异步任务
+        if (fileType == 1) {
+            watermarkService.processWatermark(resourceFile.getId(), resourceFile.getFileKey());
+        } else if (fileType == 2) {
+            transcodeService.processTranscode(resourceFile.getId(), resourceFile.getFileKey());
+        }
 
         return RespBean.success(200, "上传成功", resourceFile);
     }
